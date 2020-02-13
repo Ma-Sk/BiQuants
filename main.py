@@ -151,6 +151,7 @@ def get_null_distribution_in_row(segment_df: DataFrame, column_to_check: List = 
     null_count_df = segment_df.select(
         sum([segment_df[col].isNull().cast(IntegerType()) for col in columns]).alias('null_count'))
 
+    null_count_df.show()
     return null_count_df.groupBy('null_count').count().orderBy('null_count')
 
 
@@ -162,16 +163,16 @@ if __name__ == "__main__":
     segment_count = segment_df.count()
 
     info_df = load_data_frame(info_file, load_header_names(info_header_file))
-    nullCount = get_amount_of_records_with_null(segment_df, col_names)
-    get_amount_of_records_with_null_for_each_column(segment_df, col_names).coalesce(1).write.save("amount",
-                                                                                                  format="csv",
-                                                                                                  delimiter="|")
-    get_percent_of_records_with_null_for_each_column(segment_df, col_names).coalesce(1).write.save("percent",
-                                                                                                   format="csv",
-                                                                                                   delimiter="|")
+    # nullCount = get_amount_of_records_with_null(segment_df, col_names)
+    # get_amount_of_records_with_null_for_each_column(segment_df, col_names).coalesce(1).write.save("amount",
+    #                                                                                               format="csv",
+    #                                                                                               delimiter="|")
+    # get_percent_of_records_with_null_for_each_column(segment_df, col_names).coalesce(1).write.save("percent",
+    #                                                                                                format="csv",
+    #                                                                                                delimiter="|")
 
     get_null_distribution_in_row(segment_df, col_names).coalesce(1).write.save("SegNullDist", format="csv",
                                                                                delimiter="|")
 
-    res = get_columns_with_null(col_names, segment_df, info_df)
+    # res = get_columns_with_null(col_names, segment_df, info_df)
     # fw.write(res)
