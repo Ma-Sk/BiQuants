@@ -2,13 +2,16 @@ import os
 from functools import reduce
 from typing import List
 
+import matplotlib.pyplot as plt
+import numpy as np
 import pyspark
 import pyspark.sql.functions as f
+from matplotlib.axes import Axes
+from pyspark.sql import DataFrame
 from pyspark.sql import SQLContext
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import when, count, col
 from pyspark.sql.types import *
-from pyspark.sql import DataFrame
 
 # Если hadoop_home уже настроен это трока не нужна
 os.environ['HADOOP_HOME'] = r"D:\Programms\Spark\spark-2.4.4-bin-hadoop2.7"
@@ -151,18 +154,77 @@ def get_null_distribution_in_row(segment_df: DataFrame, column_to_check: List = 
     null_count_df = segment_df.select(
         sum([segment_df[col].isNull().cast(IntegerType()) for col in columns]).alias('null_count'))
 
-    null_count_df.show()
+    # null_count_df.show()
     return null_count_df.groupBy('null_count').count().orderBy('null_count')
 
 
+def get_plot_vals_for_nulls_rows(file_name: str) -> (List, List):
+    """
+    function to get values from Nulls-RowsCount file
+    :param file_name: name of Nulls-RowsCount file
+    :return: nulls count and amount of records with such null count
+    """
+    nulls = []
+    count = []
+    f = open(file_name)
+    for x in f.read().splitlines():
+        x, y = x.split('|')
+        nulls.append(int(x))
+        count.append(int(y))
+    return nulls, count
+
+
+def show_plots_for_all_files(ax: Axes, file_names: List):
+    """
+    function to represent all Nulls-RowsCount files on a one plot (Very Strange function)
+    :param ax: Axes to draw info on
+    :param file_names: ame of Nulls-RowsCount files
+    :return: None
+    """
+    max_nulls_len_list = []
+    for name in file_names:
+        nulls, count = get_plot_vals_for_nulls_rows(name)
+        if len(nulls) > len(max_nulls_len_list):
+            max_nulls_len_list = nulls
+        ax.scatter(x=nulls, y=count, label=name)
+
+    ax.set_xticks(np.arange(max(max_nulls_len_list) + 1))
+    ax.set_xticklabels(range(0, max(max_nulls_len_list) + 1))
+
+
+def get_vals_from_file(file_name: str, separator: str = "|") -> List:
+    """
+    get values separated by separator from a file
+    :param file_name: file to get values from
+    :param separator: separator in file
+    :return:
+    """
+    res = open(file_name).read()[:-1].split(separator)
+    res = list(map(float, res))
+    return res
+
+
+def show_plots_for_all_percent_files(ax2: Axes, col_names: List, file_names: List):
+    """
+    show plots for given files and column names
+    :param ax2: Axes to draw on
+    :param col_names: names of columns with null values
+    :param file_names: The file names for which the plot is displayed
+    :return:
+    """
+    for name in file_names:
+        vals = get_vals_from_file(name)
+        ax2.scatter(x=col_names, y=vals, label=name)
+
+
 if __name__ == "__main__":
-    fw = open("out.txt", "w")
-    col_names = load_main_column_names(segment_header_file)
-
-    segment_df = load_data_frame(segment_file, load_header_names(segment_header_file))
-    segment_count = segment_df.count()
-
-    info_df = load_data_frame(info_file, load_header_names(info_header_file))
+    # fw = open("out.txt", "w")
+    # col_names = load_main_column_names(segment_header_file)
+    #
+    # segment_df = load_data_frame(segment_file, load_header_names(segment_header_file))
+    # segment_count = segment_df.count()
+    #
+    # info_df = load_data_frame(info_file, load_header_names(info_header_file))
     # nullCount = get_amount_of_records_with_null(segment_df, col_names)
     # get_amount_of_records_with_null_for_each_column(segment_df, col_names).coalesce(1).write.save("amount",
     #                                                                                               format="csv",
@@ -171,8 +233,29 @@ if __name__ == "__main__":
     #                                                                                                format="csv",
     #                                                                                                delimiter="|")
 
-    get_null_distribution_in_row(segment_df, col_names).coalesce(1).write.save("SegNullDist", format="csv",
-                                                                               delimiter="|")
+    # null_dist_df = get_null_distribution_in_row(segment_df, col_names)
+    # null_dist_df.coalesce(1).write.save("SegNullDist", format="csv", delimiter="|")
 
     # res = get_columns_with_null(col_names, segment_df, info_df)
     # fw.write(res)
+
+    file_names_null_row = [r"data\seg143Nulls-RowsCount.csv", r"data\seg145Nulls-RowsCount.csv",
+                           r"data\seg146Nulls-RowsCount.csv"]
+    fig, ax = plt.subplots(figsize=(15, 5))
+
+    show_plots_for_all_files(ax, file_names_null_row)
+    plt.grid()
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+    plt.show()
+
+    file_names_percent = [r"data\seg143percent.csv", r"data\seg145percent.csv", r"data\seg146percent.csv"]
+
+    col_names = load_main_column_names(segment_header_file)
+    fig2, ax2 = plt.subplots(figsize=(15, 5))
+
+    show_plots_for_all_percent_files(ax2, col_names, file_names_percent)
+
+    plt.grid()
+    plt.xticks(rotation=90)
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+    plt.show()
