@@ -1,0 +1,8 @@
+.git
+.idea
+
+*.pyc
+*.swp	
+
+/logs/*/**
+/results/*/**

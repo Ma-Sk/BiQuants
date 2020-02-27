@@ -1,0 +1,8 @@
+marshmallow
+awscli==1.17.9
+boto3==1.11.9
+environs==7.1.0
+findspark==1.3.0
+pyspark==2.4.4
+numpy==1.18.1
+

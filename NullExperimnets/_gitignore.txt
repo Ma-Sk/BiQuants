@@ -1,0 +1,13 @@
+# Jupyter Notebook
+*.ipynb_checkpoints
+
+data/*
+
+# Byte-compiled / optimized / DLL files
+*__pycache__
+*.py[cod]
+*$py.class
+*.pyc
+.mypy_cache
+.idea/*
+.env

@@ -5,3 +5,5 @@
 **/amount
 **/percent
 **/SegNullDist
+*.ipynb_checkpoints
+*__pycache__

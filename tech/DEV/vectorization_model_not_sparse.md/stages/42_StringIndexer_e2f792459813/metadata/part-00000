@@ -1,0 +1,1 @@
+{"class":"org.apache.spark.ml.feature.StringIndexerModel","timestamp":1581812654582,"sparkVersion":"2.4.4","uid":"StringIndexer_e2f792459813","paramMap":{"outputCol":"category_TT_ENG_STREAMING_TV","handleInvalid":"keep","inputCol":"TT_ENG_STREAMING_TV"},"defaultParamMap":{"outputCol":"StringIndexer_e2f792459813__output","handleInvalid":"error","stringOrderType":"frequencyDesc"}}
